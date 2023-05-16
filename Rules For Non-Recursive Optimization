@@ -1,0 +1,88 @@
+import matplotlib.pyplot as plt
+
+def binary_to_expression(binary):
+    # Handle trailing zeros
+    binary = binary.rstrip('0')
+
+    # If the binary is empty after removing trailing zeros, return NaN
+    if not binary:
+        return float('NaN'), "NaN"
+
+    # If the binary doesn't contain '1', return the number itself
+    if '1' not in binary:
+        return binary, binary
+
+    # Initialize the result and expression with the first number
+    result = 1  # The first '1' always represents the number 1
+    expression = "1"
+
+    # Iterate over the rest of the binary
+    for i in range(1, len(binary)):
+        # If the current digit is '1'
+        if binary[i] == '1':
+            # Count the number of zeros since the last '1'
+            zeros = binary[i - 1::-1].index('1') if '1' in binary[i - 1::-1] else i
+
+            # If the number of zeros is odd, subtract the current number
+            if zeros % 2 == 1:
+                result -= 1
+                expression += " - 1"
+            # If the number of zeros is even, add the current number
+            else:
+                result += 1
+                expression += " + 1"
+
+    # Convert the result to binary
+    if result < 0:
+        result = '-0b' + bin(abs(result))[2:]
+    else:
+        result = bin(result)[2:]
+
+    return result, expression
+
+#Finonacci Calculation using Exponentiation
+
+def fib(n):
+    F = [[1, 1],
+         [1, 0]]
+
+    if n == 0:
+        return 0
+    power(F, n - 1)
+    return F[0][0]
+
+def multiply(F, M):
+    x = F[0][0] * M[0][0] + F[0][1] * M[1][0]
+    y = F[0][0] * M[0][1] + F[0][1] * M[1][1]
+    z = F[1][0] * M[0][0] + F[1][1] * M[1][0]
+    w = F[1][0] * M[0][1] + F[1][1] * M[1][1]
+
+    F[0][0] = x
+    F[0][1] = y
+    F[1][0] = z
+    F[1][1] = w
+
+
+def power(F, n):
+    M = [[1, 1],
+         [1, 0]]
+    for _ in range(2, n + 1):
+        multiply(F, M)
+
+# List of the first n Fibonacci numbers in binary format
+binaries = [bin(fib(n))[2:] for n in range(1, 2001)]
+
+# Generate the x and y data
+x_data = list(range(1, 2001))
+y_data = [int(binary_to_expression(binary)[0], 2) for binary in binaries]
+
+# Create the scatter plot
+plt.scatter(x_data, y_data)
+
+# Add labels and title
+plt.xlabel('Index of Fibonacci number')
+plt.ylabel('Result of expression')
+plt.title('Scatter plot of the results of binary expressions')
+
+# Show the plot
+plt.show()
