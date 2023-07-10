@@ -1,0 +1,120 @@
+#By Evan Parsons
+import matplotlib.pyplot as plt
+from collections import defaultdict
+import matplotlib.animation as animation
+
+def binary_to_expression(binary, reverse=False):
+    binary = binary.rstrip('0')
+    if not binary:
+        return float('NaN')
+    result = 1
+    for i in range(1, len(binary)):
+        if binary[i] == '1':
+            zeros = binary[i - 1::-1].index('1') if '1' in binary[i - 1::-1] else i
+            if zeros % 2 == 1:
+                result = result - 1 if not reverse else result + 1
+            else:
+                result = result + 1 if not reverse else result - 1
+    if result < 0:
+        result = '-0b' + bin(abs(result))[2:]
+    else:
+        result = bin(result)[2:]
+    return int(result, 2)
+
+
+# Initialize two dictionaries with default value 0
+counts = defaultdict(int)
+counts_reversed = defaultdict(int)
+
+
+def fib(n):
+    F = [[1, 1], [1, 0]]
+    if n == 0:
+        return 0
+    power(F, n - 1)
+    return F[0][0]
+
+def multiply(F, M):
+    x = F[0][0] * M[0][0] + F[0][1] * M[1][0]
+    y = F[0][0] * M[0][1] + F[0][1] * M[1][1]
+    z = F[1][0] * M[0][0] + F[1][1] * M[1][0]
+    w = F[1][0] * M[0][1] + F[1][1] * M[1][1]
+    F[0][0] = x
+    F[0][1] = y
+    F[1][0] = z
+    F[1][1] = w
+
+def power(F, n):
+    M = [[1, 1], [1, 0]]
+    for _ in range(2, n + 1):
+        multiply(F, M)
+
+
+# Compute the Fibonacci numbers, transform them, and count the number of times each output appears
+for i in range(1, 13):
+    binary = bin(fib(i))[2:]
+    output = binary_to_expression(binary)
+    output_reversed = binary_to_expression(binary, reverse=True)
+    counts[output] += 1
+    counts_reversed[output_reversed] += 1
+
+
+# Create a figure and axes
+fig, ax = plt.subplots()
+
+# Initialize two bar containers
+bars = ax.bar([], [], alpha=0.5, label='Original rules')
+bars_reversed = ax.bar([], [], alpha=0.5, label='Reversed rules')
+
+# Add labels, title, and legend
+ax.set_xlabel('f(Fib(n)')
+ax.set_ylabel('Count')
+ax.set_title('Count [n] for f')
+ax.legend()
+
+# Define the initialization function
+def init():
+    ax.set_xlim(-10, 10)
+    ax.set_ylim(0, 10)
+    return bars, bars_reversed
+
+
+
+# Define the update function
+def update(i):
+    # Compute the i-th Fibonacci number, transform it, and update the counts
+    fib_number = fib(i+1)
+    binary = bin(fib_number)[2:]
+    output = binary_to_expression(binary)
+    output_reversed = binary_to_expression(binary, reverse=True)
+    counts[output] += 1
+    counts_reversed[output_reversed] += 1
+
+    # Clear the current plot
+    ax.clear()
+
+    # Create a bar plot with the counts
+    ax.bar(counts.keys(), counts.values(), alpha=0.5, label='Original rules')
+    ax.bar(counts_reversed.keys(), counts_reversed.values(), alpha=0.5, label='Reversed rules')
+
+    # Update the x and y limits
+    ax.set_xlim(min(min(counts.keys()), min(counts_reversed.keys())) - 1, max(max(counts.keys()), max(counts_reversed.keys())) + 1)
+    ax.set_ylim(0, max(max(counts.values()), max(counts_reversed.values())) + 1)
+
+    # Add labels, title, and legend
+    ax.set_xlabel('f(Fib(n))')
+    ax.set_ylabel('f([n])')
+    ax.set_title('Frame: {}, Fibonacci number: {}, Result: {}'.format(i + 1, fib_number, output))
+    ax.legend()
+
+# Get user input for the number of frames and the number of Fibonacci numbers to calculate
+num_frames = int(input("Enter the number of frames: "))
+
+# Create the animation
+ani = animation.FuncAnimation(fig, update, frames=range(num_frames), interval=200)
+
+# Save the animation as a GIF
+#ani.save('Fibonacci Operate.gif', writer=PillowWriter(fps=5))
+
+# Display the animation
+plt.show()
